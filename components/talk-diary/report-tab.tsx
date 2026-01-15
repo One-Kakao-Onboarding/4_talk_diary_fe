@@ -229,10 +229,10 @@ export function ReportTab({ userId, onNavigateToChat }: ReportTabProps) {
                   <img
                     src={getEmotionIconPath(emotion)}
                     alt={emotion}
-                    className={`w-10 h-10 object-contain ${isSelected ? "ring-2 ring-black ring-offset-1 rounded-full" : ""}`}
+                    className="w-10 h-10 object-contain"
                   />
                 ) : (
-                  <div className={`w-10 h-10 rounded-full border-2 border-dashed ${isSelected ? "border-black" : "border-gray-200"}`} />
+                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-gray-200" />
                 )}
               </button>
             )
