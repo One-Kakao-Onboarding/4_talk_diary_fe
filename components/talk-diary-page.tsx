@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { ChevronLeft, ChevronRight, Send, Calendar } from "lucide-react"
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react"
 import { ReportCard } from "@/components/report-card"
 import { mockReports } from "@/lib/mock-data"
 
@@ -91,23 +91,6 @@ export function TalkDiaryPage({ userId, onBack, onNavigateToChat }: TalkDiaryPag
         )}
       </div>
 
-      {/* Input Area - 비활성화 */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-white border-t border-border opacity-50">
-        <div className="flex-1 flex items-center bg-muted rounded-full px-4 py-2">
-          <input
-            type="text"
-            placeholder="메시지 보내기"
-            className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground cursor-not-allowed"
-            disabled
-          />
-        </div>
-        <button
-          disabled
-          className="p-2 text-muted-foreground cursor-not-allowed"
-        >
-          <Send className="w-6 h-6" />
-        </button>
-      </div>
     </div>
   )
 }
