@@ -28,7 +28,7 @@ export function BottomNav({ activeTab, onTabChange, unreadCount = 0 }: BottomNav
           </span>
         )}
       </button>
-      <button 
+      <button
         onClick={() => onTabChange("archive")}
         className={cn(
           "flex flex-col items-center",

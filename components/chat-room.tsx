@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { ChevronLeft, Send } from "lucide-react"
+import { ChevronLeft, ChevronRight, Send, Calendar } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import type { Chat, Message, Profile } from "@/types/database"
 import { cn } from "@/lib/utils"
@@ -194,14 +194,16 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
             <ChevronLeft className="w-7 h-7" />
           </button>
           <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground text-lg">{chat.name}</span>
+            <span className="font-medium text-lg text-foreground">
+              {chat.name}
+            </span>
             <span className="text-muted-foreground text-sm">{memberCount}</span>
           </div>
         </div>
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-thin">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-foreground/50">로딩 중...</p>
@@ -211,48 +213,63 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
             <p className="text-foreground/50">첫 메시지를 보내보세요!</p>
           </div>
         ) : (
-          groupedMessages.map((message) => {
+          groupedMessages.map((message, index) => {
             const isMe = message.sender_id === userId
+            const prevMessage = groupedMessages[index - 1]
+            const showDatePill = !prevMessage || getDateKey(prevMessage.created_at) !== getDateKey(message.created_at)
 
             return (
-              <div key={message.id} className={cn("flex gap-2", isMe ? "justify-end" : "justify-start")}>
-                {/* Avatar for others */}
-                {!isMe && message.showAvatar && (
-                  <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center shrink-0">
-                    <span className="text-sm font-medium text-foreground">
-                      {message.sender?.name?.charAt(0) || "?"}
-                    </span>
+              <div key={message.id}>
+                {/* 날짜 pill */}
+                {showDatePill && (
+                  <div className="flex justify-center my-4">
+                    <div className="flex items-center gap-1 px-3 py-1.5 bg-foreground/10 rounded-full text-xs text-foreground/70">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>{formatDatePill(message.created_at)}</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </div>
                   </div>
                 )}
-                {!isMe && !message.showAvatar && <div className="w-10 shrink-0" />}
 
-                <div className={cn("flex flex-col max-w-[70%]", isMe ? "items-end" : "items-start")}>
-                  {/* Sender name for others */}
+                <div className={cn("flex gap-2", isMe ? "justify-end" : "justify-start")}>
+                  {/* Avatar for others */}
                   {!isMe && message.showAvatar && (
-                    <span className="text-sm text-foreground/70 mb-1">
-                      {message.sender?.name || "알 수 없음"}
-                    </span>
-                  )}
-
-                  <div className={cn("flex items-end gap-1", isMe ? "flex-row-reverse" : "flex-row")}>
-                    {/* Message bubble */}
-                    <div
-                      className={cn(
-                        "px-3 py-2 rounded-xl text-sm leading-relaxed wrap-break-word",
-                        isMe
-                          ? "bg-kakao-yellow text-foreground rounded-tr-sm"
-                          : "bg-white text-foreground rounded-tl-sm",
-                      )}
-                    >
-                      {message.content}
+                    <div className="w-10 h-10 bg-muted rounded-2xl flex items-center justify-center shrink-0">
+                      <span className="text-sm font-medium text-foreground">
+                        {message.sender?.name?.charAt(0) || "?"}
+                      </span>
                     </div>
+                  )}
+                  {!isMe && !message.showAvatar && <div className="w-10 shrink-0" />}
 
-                    {/* Time */}
-                    {message.showTime && (
-                      <div className={cn("flex flex-col text-xs text-foreground/50", isMe ? "items-end" : "items-start")}>
-                        <span>{formatTime(message.created_at)}</span>
-                      </div>
+                  <div className={cn("flex flex-col max-w-[70%]", isMe ? "items-end" : "items-start")}>
+                    {/* Sender name for others */}
+                    {!isMe && message.showAvatar && (
+                      <span className="text-sm text-foreground/70 mb-1">
+                        {message.sender?.name || "알 수 없음"}
+                      </span>
                     )}
+
+                    <div className={cn("flex items-end gap-1", isMe ? "flex-row-reverse" : "flex-row")}>
+                      {/* Message bubble */}
+                      <div
+                        className={cn(
+                          "px-3 py-2 rounded-xl text-sm leading-relaxed wrap-break-word",
+                          isMe
+                            ? "bg-kakao-yellow text-foreground rounded-tr-sm"
+                            : "bg-white text-foreground rounded-tl-sm",
+                        )}
+                      >
+                        {message.content}
+                      </div>
+
+                      {/* Time */}
+                      {message.showTime && (
+                        <div className={cn("flex flex-col text-xs text-foreground/50", isMe ? "items-end" : "items-start")}>
+                          <span>{formatTime(message.created_at)}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -296,4 +313,20 @@ function formatTime(dateString: string): string {
     minute: '2-digit',
     hour12: true
   })
+}
+
+// 날짜 포맷팅 헬퍼 (날짜 pill용)
+function formatDatePill(dateString: string): string {
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일']
+  const weekday = weekdays[date.getDay()]
+  return `${year}년 ${month}월 ${day}일 ${weekday}`
+}
+
+// 날짜만 추출 (YYYY-MM-DD)
+function getDateKey(dateString: string): string {
+  return new Date(dateString).toISOString().split('T')[0]
 }

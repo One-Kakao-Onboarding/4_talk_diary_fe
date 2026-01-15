@@ -3,10 +3,14 @@
 import { useState, useEffect, useCallback } from "react"
 import { Plus, X, LogOut, MessageCircle } from "lucide-react"
 import { supabase, clearUserSession } from "@/lib/supabase"
-import type { Chat, Profile } from "@/types/database"
+import type { Chat } from "@/types/database"
 import { cn } from "@/lib/utils"
+import { mockReports } from "@/lib/mock-data"
 
 type TabType = "내 채팅" | "공개방"
+
+// 톡다이어리 식별용 ID
+const TALK_DIARY_ID = "talk-diary-system"
 
 interface ChatWithDetails extends Chat {
   memberCount: number
@@ -14,6 +18,8 @@ interface ChatWithDetails extends Chat {
   lastMessageTime?: string
   unreadCount: number
   isMember: boolean
+  isTalkDiary?: boolean
+  hasNewReport?: boolean
 }
 
 interface ChatListProps {
@@ -109,8 +115,28 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
       return b.lastMessageTime.localeCompare(a.lastMessageTime)
     })
 
-    setMyChats(chatsWithDetails)
-  }, [userId])
+    // 톡다이어리를 최상단에 추가
+    const latestReport = mockReports[0]
+    const hasNewReport = mockReports.length > 0 // TODO: 실제로는 읽음 여부 체크
+    const talkDiaryChat: ChatWithDetails = {
+      id: TALK_DIARY_ID,
+      name: "톡다이어리",
+      created_at: new Date().toISOString(),
+      memberCount: 1,
+      lastMessage: hasNewReport
+        ? `${userName}님, 오늘의 톡다이어리가 도착했어요.`
+        : "새 리포트를 기다려보세요",
+      lastMessageTime: latestReport?.created_at
+        ? formatTime(latestReport.created_at)
+        : undefined,
+      unreadCount: 0,
+      isMember: true,
+      isTalkDiary: true,
+      hasNewReport,
+    }
+
+    setMyChats([talkDiaryChat, ...chatsWithDetails])
+  }, [userId, userName])
 
   // 공개 채팅방 목록 조회
   const fetchPublicChats = useCallback(async () => {
@@ -351,30 +377,50 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
                 className="flex items-center gap-3 w-full px-4 py-3 hover:bg-muted/50 transition-colors text-left"
               >
                 {/* Avatar */}
-                <div className="w-14 h-14 bg-kakao-yellow rounded-full flex items-center justify-center shrink-0">
-                  <MessageCircle className="w-7 h-7 text-foreground" />
-                </div>
+                {chat.isTalkDiary ? (
+                  <img
+                    src="/dairy_profile.png"
+                    alt="톡다이어리"
+                    className="w-14 h-14 rounded-3xl shrink-0 object-cover"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-3xl bg-kakao-yellow flex items-center justify-center shrink-0">
+                    <MessageCircle className="w-7 h-7 text-foreground" />
+                  </div>
+                )}
 
                 {/* Chat Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1">
-                    <span className="font-medium text-foreground truncate">{chat.name}</span>
-                    <span className="text-muted-foreground text-sm">{chat.memberCount}</span>
+                    <span className="font-medium truncate text-foreground">
+                      {chat.name}
+                    </span>
+                    {!chat.isTalkDiary && (
+                      <span className="text-muted-foreground text-sm">{chat.memberCount}</span>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground truncate">
                     {chat.lastMessage || "메시지가 없습니다"}
                   </p>
                 </div>
 
-                {/* Time & Unread */}
+                {/* Time & Badge */}
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   {chat.lastMessageTime && (
                     <span className="text-xs text-muted-foreground">{chat.lastMessageTime}</span>
                   )}
-                  {chat.unreadCount > 0 && (
-                    <span className="bg-kakao-orange text-white text-xs font-medium px-2 py-0.5 rounded-full min-w-5 text-center">
-                      {chat.unreadCount > 99 ? "99+" : chat.unreadCount}
-                    </span>
+                  {chat.isTalkDiary ? (
+                    chat.hasNewReport && (
+                      <span className="bg-kakao-orange text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                        N
+                      </span>
+                    )
+                  ) : (
+                    chat.unreadCount > 0 && (
+                      <span className="bg-kakao-orange text-white text-xs font-medium px-2 py-0.5 rounded-full min-w-5 text-center">
+                        {chat.unreadCount > 99 ? "99+" : chat.unreadCount}
+                      </span>
+                    )
                   )}
                 </div>
               </button>
@@ -394,7 +440,7 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
                 className="flex items-center gap-3 w-full px-4 py-3 hover:bg-muted/50 transition-colors text-left"
               >
                 {/* Avatar */}
-                <div className="w-14 h-14 bg-kakao-yellow rounded-full flex items-center justify-center shrink-0">
+                <div className="w-14 h-14 bg-kakao-yellow rounded-3xl flex items-center justify-center shrink-0">
                   <MessageCircle className="w-7 h-7 text-foreground" />
                 </div>
 
