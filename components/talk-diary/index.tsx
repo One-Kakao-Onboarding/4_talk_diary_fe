@@ -11,9 +11,10 @@ type TabType = "home" | "report"
 interface TalkDiaryProps {
   userId: string
   onClose: () => void
+  onNavigateToChat?: (chatId: string, messageId?: string) => void
 }
 
-export function TalkDiary({ userId, onClose }: TalkDiaryProps) {
+export function TalkDiary({ userId, onClose, onNavigateToChat }: TalkDiaryProps) {
   const [activeTab, setActiveTab] = useState<TabType>("home")
 
   const tabs: { key: TabType; label: string }[] = [
@@ -59,7 +60,7 @@ export function TalkDiary({ userId, onClose }: TalkDiaryProps) {
       {/* Content - 스크롤 영역 */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-4 pb-safe scrollbar-thin bg-white">
         {activeTab === "home" && <HomeTab userId={userId} />}
-        {activeTab === "report" && <ReportTab userId={userId} />}
+        {activeTab === "report" && <ReportTab userId={userId} onNavigateToChat={onNavigateToChat} />}
       </div>
     </div>
   )

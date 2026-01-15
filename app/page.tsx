@@ -178,6 +178,21 @@ export default function Home() {
             <ArchivePage
               userId={userId}
               onClose={() => setBottomTab("chat")}
+              onNavigateToChat={async (chatId, messageId) => {
+                const { data: chatData } = await supabase
+                  .from('chats')
+                  .select('*')
+                  .eq('id', chatId)
+                  .single()
+
+                if (chatData) {
+                  setSelectedChat(chatData)
+                  setTargetMessageId(messageId)
+                  setBottomTab("chat")
+                  setView("chat-room")
+                  window.history.pushState({ view: "chat-room", chatId, messageId }, "")
+                }
+              }}
             />
           )}
         </>
