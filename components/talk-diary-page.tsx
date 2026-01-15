@@ -47,7 +47,7 @@ export function TalkDiaryPage({ userId, onBack, onNavigateToChat }: TalkDiaryPag
       </header>
 
       {/* Reports */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 scrollbar-thin">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 pt-4 pb-safe scrollbar-thin">
         {mockReports.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-foreground/50">아직 리포트가 없습니다</p>

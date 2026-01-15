@@ -72,8 +72,8 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full bg-kakao-yellow p-6">
-      <div className="w-full max-w-sm">
+    <div className="flex flex-col items-center justify-center w-full h-full bg-kakao-yellow p-6 overflow-y-auto">
+      <div className="w-full max-w-sm flex-shrink-0">
         {/* Logo - 카카오톡 말풍선 스타일 */}
         <div className="flex flex-col items-center mb-10">
           <div className="relative">

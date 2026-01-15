@@ -4,17 +4,26 @@ import useEmblaCarousel from "embla-carousel-react"
 import { Download } from "lucide-react"
 import type { DailyReportContent } from "@/types/database"
 
-// 키워드별 색상 매핑
-const keywordColors: Record<string, { bg: string; text: string }> = {
-  "해커톤": { bg: "bg-pink-100", text: "text-pink-500" },
-  "결혼": { bg: "bg-purple-100", text: "text-purple-500" },
-  "야식": { bg: "bg-pink-100", text: "text-pink-500" },
-  "카페": { bg: "bg-purple-100", text: "text-purple-500" },
-  "휴식": { bg: "bg-blue-100", text: "text-blue-500" },
-}
+// 키워드 색상 팔레트
+const colorPalette = [
+  { bg: "bg-pink-100", text: "text-pink-500" },
+  { bg: "bg-purple-100", text: "text-purple-500" },
+  { bg: "bg-blue-100", text: "text-blue-500" },
+  { bg: "bg-green-100", text: "text-green-500" },
+  { bg: "bg-orange-100", text: "text-orange-500" },
+  { bg: "bg-cyan-100", text: "text-cyan-500" },
+  { bg: "bg-rose-100", text: "text-rose-500" },
+  { bg: "bg-indigo-100", text: "text-indigo-500" },
+]
 
+// 키워드 문자열을 해시하여 일관된 색상 반환
 const getKeywordColor = (keyword: string) => {
-  return keywordColors[keyword] || { bg: "bg-gray-100", text: "text-gray-500" }
+  let hash = 0
+  for (let i = 0; i < keyword.length; i++) {
+    hash = keyword.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const index = Math.abs(hash) % colorPalette.length
+  return colorPalette[index]
 }
 
 interface ReportCardProps {
@@ -70,37 +79,40 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                 {dailySummary.summaryText}
               </p>
 
-              {/* 구분선이 있는 섹션들 */}
-              <div className="space-y-3">
+              {/* 박스로 묶인 섹션들 */}
+              <div className="space-y-2">
                 {/* 오늘의 키워드 */}
-                <div className="flex items-center justify-between py-2 border-t border-gray-100">
-                  <span className="text-sm text-foreground/60">오늘의 키워드</span>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <span className="text-sm font-semibold text-foreground">오늘의 키워드</span>
                   <div className="flex gap-1.5">
-                    {dailySummary.keywords.map((keyword, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2.5 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-medium"
-                      >
-                        {keyword}
-                      </span>
-                    ))}
+                    {dailySummary.keywords.map((keyword, idx) => {
+                      const colors = getKeywordColor(keyword)
+                      return (
+                        <span
+                          key={idx}
+                          className={`px-2.5 py-1 ${colors.bg} ${colors.text} rounded-full text-xs font-medium`}
+                        >
+                          {keyword}
+                        </span>
+                      )
+                    })}
                   </div>
                 </div>
 
                 {/* 오늘의 감정 날씨 */}
-                <div className="flex items-center justify-between py-2 border-t border-gray-100">
-                  <span className="text-sm text-foreground/60">오늘의 감정 날씨</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 bg-yellow-300 rounded" />
-                    <span className="px-2.5 py-1 bg-pink-100 text-pink-500 rounded-full text-xs font-medium">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <span className="text-sm font-semibold text-foreground">오늘의 감정 날씨</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-pink-100 rounded-full">
+                    <span className="text-sm">☀️</span>
+                    <span className="text-pink-500 text-xs font-medium">
                       {dailySummary.emotionWeather}
                     </span>
                   </div>
                 </div>
 
                 {/* 최고의 티키타카 */}
-                <div className="flex items-center justify-between py-2 border-t border-gray-100">
-                  <span className="text-sm text-foreground/60">최고의 티키타카</span>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                  <span className="text-sm font-semibold text-foreground">최고의 티키타카</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-base">😊</span>
                     <span className="text-sm font-medium text-foreground">{dailySummary.bestTikitaka.name}</span>
@@ -136,15 +148,14 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                           {conversation.title}
                         </span>
                       </div>
-                      {/* 미리보기 텍스트 + 발신자 이름 */}
-                      <div className="flex justify-between items-end gap-2">
-                        <p className="text-sm text-foreground/70 leading-relaxed flex-1">
-                          {conversation.preview}
-                        </p>
-                        <span className="text-xs text-foreground/50 shrink-0">
-                          {conversation.senderName}
-                        </span>
-                      </div>
+                      {/* 미리보기 텍스트 */}
+                      <p className="text-sm text-foreground/70 leading-relaxed mb-1">
+                        {conversation.preview}
+                      </p>
+                      {/* 발신자 이름 */}
+                      <span className="text-xs text-foreground/50 block text-right">
+                        {conversation.senderName}
+                      </span>
                     </button>
                   )
                 })}

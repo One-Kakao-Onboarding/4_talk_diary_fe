@@ -129,9 +129,47 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    height: 100%;
+    overflow: hidden;
+  }
   body {
     @apply bg-background text-foreground;
+    height: 100%;
+    overflow: hidden;
+    /* iOS 스크롤 바운스 방지 */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
+}
+
+/* 모바일 뷰포트 높이 (주소창, 툴바, 키보드 등을 고려) */
+.h-screen-safe {
+  height: 100vh; /* fallback */
+  height: -webkit-fill-available; /* iOS Safari fallback */
+  height: 100dvh; /* 동적 뷰포트 (권장) */
+}
+
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
+}
+
+/* Safe area inset만 적용 (기본 패딩 없음) */
+.pb-safe-inset {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pt-safe-inset {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Safe area + 기본 패딩 (0.5rem = 8px) */
+.pb-safe {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+.pt-safe {
+  padding-top: calc(0.5rem + env(safe-area-inset-top, 0px));
 }
 
 /* 스크롤바 숨김 유틸리티 */

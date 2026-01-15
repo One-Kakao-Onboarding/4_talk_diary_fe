@@ -24,7 +24,9 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
   const [isSending, setIsSending] = useState(false)
   const [memberCount, setMemberCount] = useState(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const isAtBottomRef = useRef(true)
 
   // 스크롤을 맨 아래로
   const scrollToBottom = useCallback(() => {
@@ -89,6 +91,53 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
       scrollToBottom()
     }
   }, [isLoading, messages.length, scrollToBottom])
+
+  // 스크롤 위치 추적 (하단에 있는지 확인)
+  const checkIfAtBottom = useCallback(() => {
+    const container = scrollContainerRef.current
+    if (!container) return true
+
+    const threshold = 50 // 하단에서 50px 이내면 하단으로 간주
+    const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold
+    isAtBottomRef.current = isAtBottom
+    return isAtBottom
+  }, [])
+
+  // 스크롤 이벤트 핸들러
+  const handleScroll = useCallback(() => {
+    checkIfAtBottom()
+  }, [checkIfAtBottom])
+
+  // 키보드가 올라올 때 스크롤 하단 유지 (하단에 있을 때만)
+  useEffect(() => {
+    const viewport = window.visualViewport
+    if (!viewport) return
+
+    let prevHeight = viewport.height
+
+    const handleResize = () => {
+      const currentHeight = viewport.height
+      // 뷰포트 높이가 줄어들면 (키보드가 올라오면) + 하단에 있었다면 스크롤을 맨 아래로
+      if (currentHeight < prevHeight && isAtBottomRef.current) {
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "instant" })
+        }, 50)
+      }
+      prevHeight = currentHeight
+    }
+
+    viewport.addEventListener("resize", handleResize)
+    return () => viewport.removeEventListener("resize", handleResize)
+  }, [])
+
+  // input focus 시에도 스크롤 (하단에 있을 때만)
+  const handleInputFocus = () => {
+    if (isAtBottomRef.current) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "instant" })
+      }, 300)
+    }
+  }
 
   // 실시간 메시지 구독
   useEffect(() => {
@@ -203,7 +252,11 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-thin">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto px-3 py-4 space-y-1 scrollbar-thin"
+      >
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-foreground/50">로딩 중...</p>
@@ -280,7 +333,7 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
       </div>
 
       {/* Input Area */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-white border-t border-border">
+      <div className="flex items-center gap-2 px-3 pt-2 pb-safe bg-white border-t border-border">
         <div className="flex-1 flex items-center bg-muted rounded-full px-4 py-2">
           <input
             ref={inputRef}
@@ -288,6 +341,7 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={handleInputFocus}
             placeholder="메시지 보내기"
             className="flex-1 bg-transparent outline-none text-sm placeholder:text-muted-foreground"
             disabled={isSending}
