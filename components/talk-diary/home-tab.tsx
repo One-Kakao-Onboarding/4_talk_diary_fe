@@ -176,7 +176,7 @@ export function HomeTab({ userId }: HomeTabProps) {
   const isCurrentMonth = viewYear === todayYear && viewMonth === todayMonth
 
   // 현재 보고 있는 달의 키워드 수집
-  const viewMonthKeywords = Object.entries(allKeywords)
+  const allViewMonthKeywords = Object.entries(allKeywords)
     .filter(([dateKey]) => {
       // dateKey 형식: "YYYY-MM-DD"
       const [year, month] = dateKey.split('-').map(Number)
@@ -184,6 +184,18 @@ export function HomeTab({ userId }: HomeTabProps) {
     })
     .flatMap(([, keywords]) => keywords)
     .filter((keyword, index, self) => self.indexOf(keyword) === index) // 중복 제거
+
+  // 랜덤으로 최대 10개 선택
+  const [keywordSeed, setKeywordSeed] = useState(() => Math.random())
+  useEffect(() => {
+    setKeywordSeed(Math.random())
+  }, [viewYear, viewMonth])
+
+  const viewMonthKeywords = [...allViewMonthKeywords]
+    .map((keyword, i) => ({ keyword, sort: Math.sin(keywordSeed * (i + 1) * 9999) }))
+    .sort((a, b) => a.sort - b.sort)
+    .slice(0, 10)
+    .map(item => item.keyword)
 
   // 현재 보고 있는 달의 이미지 수집
   const viewMonthImages = Object.entries(allImages)
