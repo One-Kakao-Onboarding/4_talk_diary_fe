@@ -6,6 +6,7 @@
 | ------------ | -------------------------------------- |
 | 프론트엔드   | Next.js 16, React 19, TypeScript       |
 | 스타일링     | Tailwind CSS 4, Radix UI, Lucide Icons |
+| UI 컴포넌트  | Embla Carousel (리포트 카드 스와이프)  |
 | 백엔드       | Supabase (BaaS)                        |
 | 데이터베이스 | PostgreSQL (Supabase)                  |
 | 실시간 통신  | Supabase Realtime                      |
@@ -60,7 +61,20 @@
 :root {
   --kakao-yellow: #fee500; /* 카카오 노랑 (메시지, 버튼) */
   --kakao-orange: #ff6b35; /* 읽지 않은 메시지 뱃지 */
-  --kakao-chat: #b2c7d9; /* 채팅방 배경 */
+  --kakao-chat: #d0dde8;   /* 채팅방 배경 */
+}
+```
+
+**커스텀 스크롤바**
+
+```css
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  background: transparent;
 }
 ```
 
@@ -86,8 +100,21 @@
 - `Archive`: 기록 탭
 - `Plus`: 채팅방 생성
 - `LogOut`: 로그아웃
-- `ChevronLeft`: 뒤로가기
+- `ChevronLeft`, `ChevronRight`: 네비게이션
 - `Send`: 메시지 전송
+- `Calendar`: 날짜 pill
+
+### Embla Carousel
+
+**선택 이유**
+
+- 가볍고 유연한 캐러셀 라이브러리
+- React hooks 지원
+- 터치/스와이프 제스처 지원
+
+**사용처**
+
+- 톡다이어리 리포트 카드 (3장 가로 스와이프)
 
 ---
 
@@ -109,13 +136,14 @@
 
 - 테이블 CRUD
 - Foreign Key 관계
-- JSONB 타입 (데일리 리포트 저장)
+- JSONB 타입 (톡다이어리 콘텐츠 저장)
 - Row Level Security (RLS)
 
 **2. Realtime**
 
 - Postgres Changes 구독
 - 채널 기반 메시지 수신
+- 톡다이어리 수신 (예정)
 
 ---
 
@@ -159,18 +187,31 @@ export function clearUserSession() { ... }
 
 ---
 
-## 배포 옵션
+## 배포
 
-### Vercel (권장)
-
-- Next.js 공식 플랫폼
-- 자동 CI/CD, 프리뷰 배포
-- 환경 변수 설정 UI 제공
-
-### GitHub Pages (가능)
+### GitHub Pages
 
 - 정적 내보내기 (`output: 'export'`)
-- basePath 설정 필요
+- basePath 설정: `/4_talk_diary_fe`
+- assetPrefix 설정 (이미지 경로용)
+
+**next.config.ts**
+
+```typescript
+const isProd = process.env.NODE_ENV === "production";
+
+const nextConfig: NextConfig = {
+  output: "export",
+  basePath: isProd ? "/4_talk_diary_fe" : "",
+  assetPrefix: isProd ? "/4_talk_diary_fe" : "",
+  images: {
+    unoptimized: true,
+  },
+  env: {
+    NEXT_PUBLIC_BASE_PATH: isProd ? "/4_talk_diary_fe" : "",
+  },
+};
+```
 
 **환경 변수**
 
@@ -181,12 +222,16 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx...
 
 ---
 
-## 데일리 리포트 기술 스택 (예정)
+## 톡다이어리 기술 스택
 
-데일리 리포트 생성에 필요한 추가 기술 스택은 추후 결정
+### 현재 구현 (프론트엔드)
 
-_고려 중인 옵션_
+- 톡다이어리 전용 페이지 (`TalkDiaryPage`)
+- 리포트 카드 캐러셀 (`ReportCard` + Embla Carousel)
+- 알림 컴포넌트 (`TalkDiaryNotification`)
+- Mock 데이터 (`lib/mock-data.ts`)
 
-- AI/LLM API를 통한 채팅 요약 생성
-- 클라이언트 사이드 통계 계산
-- 서버리스 함수 (Supabase Edge Functions)
+### 예정 (백엔드 연동)
+
+- Supabase Realtime으로 `daily_reports` 테이블 INSERT 감지
+- AI 서버에서 리포트 생성 후 Supabase에 저장

@@ -292,21 +292,9 @@ const { count: unreadCount } = await supabase
 
 ---
 
-## 6. 데일리 리포트 (예정)
+## 6. 톡다이어리 (daily_reports)
 
-### 리포트 생성
-
-```typescript
-const createDailyReport = async (reportDate: string, content: object) => {
-  await supabase.from("daily_reports").upsert({
-    user_id: userId,
-    report_date: reportDate,
-    content,
-  });
-};
-```
-
-### 리포트 목록 조회
+### 톡다이어리 목록 조회
 
 ```typescript
 const fetchReports = async () => {
@@ -318,7 +306,7 @@ const fetchReports = async () => {
 };
 ```
 
-### 리포트 상세 조회
+### 톡다이어리 상세 조회
 
 ```typescript
 const fetchReportDetail = async (reportId: string) => {
@@ -330,7 +318,32 @@ const fetchReportDetail = async (reportId: string) => {
 };
 ```
 
-_데일리 리포트의 구체적인 API 사용 및 content 구조는 추후 결정_
+### 톡다이어리 Realtime 구독 (예정)
+
+```typescript
+useEffect(() => {
+  const channel = supabase
+    .channel("talk-diary-updates")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "daily_reports",
+        filter: `user_id=eq.${userId}`,
+      },
+      (payload) => {
+        // 새 톡다이어리 도착 시 알림 표시
+        setShowNotification(true);
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [userId]);
+```
 
 ---
 
@@ -374,14 +387,38 @@ export interface MessageWithSender extends Message {
 }
 ```
 
-### 데일리 리포트 타입 (구현 예정)
+### 톡다이어리 타입
 
 ```typescript
+export interface DailyReportContent {
+  dailySummary: {
+    title: string;
+    summaryText: string;
+    keywords: string[];
+    emotionWeather: string;
+    bestTikitaka: {
+      name: string;
+      chatId?: string;
+    };
+  };
+  specialConversations: {
+    keyword: string;
+    title: string;
+    preview: string;
+    senderName: string;
+    chatId: string;
+    messageId?: string;
+  }[];
+  aiImageSummary: {
+    imageUrl: string | null;
+  };
+}
+
 export interface DailyReport {
   id: string;
   user_id: string;
   report_date: string;
-  content: Record<string, unknown>; // 구조 추후 결정
+  content: DailyReportContent;
   created_at: string;
 }
 ```
