@@ -223,18 +223,23 @@ export function HomeTab({ userId }: HomeTabProps) {
       .slice(0, 3)
   })()
 
-  // 랜덤 이미지 선택 (조회할 때마다 랜덤)
-  const [randomImageIndex, setRandomImageIndex] = useState(0)
+  // 이미지 슬라이드쇼 (3초 간격, 크로스페이드 효과)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
   useEffect(() => {
-    if (viewMonthImages.length > 0) {
-      setRandomImageIndex(Math.floor(Math.random() * viewMonthImages.length))
-    }
-  }, [viewMonthImages.length, viewYear, viewMonth])
+    // 달이 바뀌면 인덱스 초기화
+    setCurrentImageIndex(0)
+  }, [viewYear, viewMonth])
 
-  const randomImage = viewMonthImages.length > 0
-    ? viewMonthImages[randomImageIndex % viewMonthImages.length]
-    : null
+  useEffect(() => {
+    if (viewMonthImages.length <= 1) return
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % viewMonthImages.length)
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [viewMonthImages.length])
 
   return (
     <div className="space-y-6">
@@ -407,12 +412,19 @@ export function HomeTab({ userId }: HomeTabProps) {
       <section>
         <h2 className="font-semibold text-foreground mb-4">AI 갤러리</h2>
 
-        {randomImage ? (
-          <img
-            src={randomImage}
-            alt="AI 생성 이미지"
-            className="w-full rounded-xl object-cover"
-          />
+        {viewMonthImages.length > 0 ? (
+          <div className="relative w-full aspect-square rounded-xl overflow-hidden">
+            {viewMonthImages.map((image, idx) => (
+              <img
+                key={idx}
+                src={image}
+                alt={`AI 생성 이미지 ${idx + 1}`}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                  idx === currentImageIndex ? 'opacity-100' : 'opacity-0'
+                }`}
+              />
+            ))}
+          </div>
         ) : (
           <div className="w-full h-48 rounded-xl bg-gray-100 flex items-center justify-center">
             <p className="text-sm text-muted-foreground">아직 이미지가 없습니다</p>
