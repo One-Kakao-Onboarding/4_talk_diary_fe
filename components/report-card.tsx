@@ -2,7 +2,28 @@
 
 import useEmblaCarousel from "embla-carousel-react"
 import { Download } from "lucide-react"
-import type { DailyReportContent } from "@/types/database"
+import type { DailyReportContent, EmotionIcon } from "@/types/database"
+
+// 감정 아이콘 이미지 경로 매핑 (7종류)
+const emotionIconMap: Record<EmotionIcon, string> = {
+  "기쁨": "/mind/기쁨.png",
+  "슬픔": "/mind/슬픔.png",
+  "신남": "/mind/신남.png",
+  "분노": "/mind/분노.png",
+  "놀라움": "/mind/놀라움.png",
+  "그저그럼": "/mind/그저그럼.png",
+  "설렘": "/mind/설렘.png",
+}
+
+// 감정 아이콘 이미지 경로 반환
+const getEmotionIconPath = (icon?: EmotionIcon): string => {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ""
+  if (icon && emotionIconMap[icon]) {
+    return `${basePath}${emotionIconMap[icon]}`
+  }
+  // 기본값: 기쁨
+  return `${basePath}/mind/기쁨.png`
+}
 
 // 키워드 색상 팔레트
 const colorPalette = [
@@ -103,7 +124,11 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <span className="text-sm font-semibold text-foreground">오늘의 감정 날씨</span>
                   <div className="flex items-center gap-1.5 px-2.5 py-1 bg-pink-100 rounded-full">
-                    <span className="text-sm">☀️</span>
+                    <img
+                      src={getEmotionIconPath(dailySummary.emotionIcon)}
+                      alt={dailySummary.emotionIcon || "감정"}
+                      className="w-4 h-4 object-contain"
+                    />
                     <span className="text-pink-500 text-xs font-medium">
                       {dailySummary.emotionWeather}
                     </span>

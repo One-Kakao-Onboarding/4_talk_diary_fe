@@ -26,6 +26,9 @@ export interface Message {
   created_at: string
 }
 
+// 감정 아이콘 타입 (public/mind 폴더의 이미지 파일명과 매핑)
+export type EmotionIcon = "기쁨" | "슬픔" | "신남" | "분노" | "놀라움" | "그저그럼" | "설렘"
+
 // 데일리 리포트 content 구조
 export interface DailyReportContent {
   // 1. 데일리 요약
@@ -33,7 +36,8 @@ export interface DailyReportContent {
     title: string                    // 타이틀
     summaryText: string              // 하루를 감성적으로 요약하는 3문장 이내의 문구
     keywords: string[]               // 오늘의 키워드 (3가지)
-    emotionWeather: string           // 오늘의 감정 날씨
+    emotionWeather: string           // 오늘의 감정 날씨 (텍스트: "설렘 70%")
+    emotionIcon?: EmotionIcon        // 감정 아이콘 (이미지 매핑용)
     bestTikitaka: {                  // 최고의 티키타카 (1인)
       name: string
       chatId?: string

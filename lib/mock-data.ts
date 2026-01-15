@@ -7,6 +7,7 @@ export const mockReportContent: DailyReportContent = {
     summaryText: "가벼운 농담보다 깊은 진심이 더 많이 머물렀던 밤이에요. 소중한 사람과 나눈 묵직한 대화들이 당신의 오늘을 단단하게 채워주었습니다.",
     keywords: ["해커톤", "결혼", "야식"],
     emotionWeather: "설렘 70%",
+    emotionIcon: "설렘",
     bestTikitaka: {
       name: "춘식이",
       chatId: "mock-chat-1"
@@ -61,6 +62,7 @@ export const mockReports: DailyReport[] = [
         summaryText: "카페에서 책을 읽으며 여유로운 시간을 보냈어요. 오랜만에 만난 친구와 수다를 떨며 힐링했어요.",
         keywords: ["휴식", "카페", "친구"],
         emotionWeather: "평온 80%",
+        emotionIcon: "기쁨",
         bestTikitaka: {
           name: "Sarah",
           chatId: "mock-chat-2"
