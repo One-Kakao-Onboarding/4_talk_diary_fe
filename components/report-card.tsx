@@ -111,7 +111,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                       return (
                         <span
                           key={idx}
-                          className={`px-2.5 py-1 ${colors.bg} ${colors.text} rounded-full text-xs font-medium`}
+                          className={`px-3 py-1.5 ${colors.bg} ${colors.text} rounded-full text-xs font-medium`}
                         >
                           {keyword}
                         </span>
@@ -123,7 +123,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                 {/* 오늘의 감정 날씨 */}
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <span className="text-sm font-semibold text-foreground">오늘의 감정 날씨</span>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-pink-100 rounded-full">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-100 rounded-full">
                     <img
                       src={getEmotionIconPath(dailySummary.emotionIcon)}
                       alt={dailySummary.emotionIcon || "감정"}
@@ -138,10 +138,19 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                 {/* 최고의 티키타카 */}
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                   <span className="text-sm font-semibold text-foreground">최고의 티키타카</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base">😊</span>
-                    <span className="text-sm font-medium text-foreground">{dailySummary.bestTikitaka.name}</span>
-                  </div>
+                  {(() => {
+                    const colors = getKeywordColor(dailySummary.bestTikitaka.name || "")
+                    return (
+                      <div className="flex items-center gap-2">
+                        <div className={`w-6 h-6 ${colors.bg} rounded-lg flex items-center justify-center`}>
+                          <span className={`text-xs font-medium ${colors.text}`}>
+                            {dailySummary.bestTikitaka.name?.charAt(0) || "?"}
+                          </span>
+                        </div>
+                        <span className="text-sm font-medium text-foreground">{dailySummary.bestTikitaka.name}</span>
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
             </div>
@@ -166,7 +175,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                     >
                       {/* 키워드 태그 + 제목 */}
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 ${colors.bg} ${colors.text} rounded text-xs font-medium`}>
+                        <span className={`px-2 py-0.5 ${colors.bg} ${colors.text} rounded-lg text-xs font-medium`}>
                           {conversation.keyword}
                         </span>
                         <span className="text-sm font-medium text-foreground">
