@@ -13,7 +13,7 @@ interface BottomNavProps {
 
 export function BottomNav({ activeTab, onTabChange, unreadCount = 0 }: BottomNavProps) {
   return (
-    <nav className="flex items-center justify-evenly pt-3 pb-safe border-t border-border bg-background">
+    <nav className="flex-shrink-0 flex items-center justify-evenly pt-3 pb-safe border-t border-border bg-background">
       <button 
         onClick={() => onTabChange("chat")}
         className={cn(

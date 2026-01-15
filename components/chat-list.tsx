@@ -295,7 +295,7 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
   }, [totalUnread, onUnreadCountChange])
 
   return (
-    <div className="flex flex-col flex-1 bg-background">
+    <div className="flex flex-col flex-1 min-h-0 bg-background">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3">
         <h1 className="text-2xl font-bold text-foreground">채팅</h1>
