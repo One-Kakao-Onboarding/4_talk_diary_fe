@@ -15,18 +15,21 @@ interface ChatRoomProps {
   userId: string
   userName: string
   onBack: () => void
+  targetMessageId?: string
 }
 
-export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
+export function ChatRoom({ chat, userId, userName, onBack, targetMessageId }: ChatRoomProps) {
   const [messages, setMessages] = useState<MessageWithSender[]>([])
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isSending, setIsSending] = useState(false)
   const [memberCount, setMemberCount] = useState(0)
+  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const isAtBottomRef = useRef(true)
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   // 스크롤을 맨 아래로
   const scrollToBottom = useCallback(() => {
@@ -85,12 +88,25 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
     loadData()
   }, [fetchMessages, fetchMemberCount, updateLastRead])
 
-  // 메시지 로드 후 스크롤
+  // 메시지 로드 후 스크롤 (타겟 메시지가 있으면 해당 위치로)
   useEffect(() => {
-    if (!isLoading) {
-      scrollToBottom()
+    if (!isLoading && messages.length > 0) {
+      if (targetMessageId) {
+        // 타겟 메시지로 스크롤
+        const targetElement = messageRefs.current[targetMessageId]
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: "smooth", block: "center" })
+          // 하이라이트 효과
+          setHighlightedMessageId(targetMessageId)
+          setTimeout(() => setHighlightedMessageId(null), 2000)
+        } else {
+          scrollToBottom()
+        }
+      } else {
+        scrollToBottom()
+      }
     }
-  }, [isLoading, messages.length, scrollToBottom])
+  }, [isLoading, messages.length, scrollToBottom, targetMessageId])
 
   // 스크롤 위치 추적 (하단에 있는지 확인)
   const checkIfAtBottom = useCallback(() => {
@@ -272,7 +288,10 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
             const showDatePill = !prevMessage || getDateKey(prevMessage.created_at) !== getDateKey(message.created_at)
 
             return (
-              <div key={message.id}>
+              <div
+                key={message.id}
+                ref={(el) => { messageRefs.current[message.id] = el }}
+              >
                 {/* 날짜 pill */}
                 {showDatePill && (
                   <div className="flex justify-center my-4">
@@ -307,10 +326,11 @@ export function ChatRoom({ chat, userId, userName, onBack }: ChatRoomProps) {
                       {/* Message bubble */}
                       <div
                         className={cn(
-                          "px-3 py-2 rounded-xl text-sm leading-relaxed wrap-break-word",
+                          "px-3 py-2 rounded-xl text-sm leading-relaxed wrap-break-word transition-shadow duration-500",
                           isMe
                             ? "bg-kakao-yellow text-foreground rounded-tr-sm"
                             : "bg-white text-foreground rounded-tl-sm",
+                          highlightedMessageId === message.id && "ring-2 ring-kakao-orange ring-offset-2 shadow-lg"
                         )}
                       >
                         {message.content}

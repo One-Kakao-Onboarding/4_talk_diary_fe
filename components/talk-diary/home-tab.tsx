@@ -1,6 +1,14 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { ChevronRight } from "lucide-react"
+import { fetchReports } from "@/lib/supabase"
+import type { Report, EmotionIcon } from "@/types/database"
+import { isValidReportContent } from "@/types/database"
+
+interface HomeTabProps {
+  userId: string
+}
 
 // 감정 아이콘 이미지 경로
 const getEmotionIconPath = (emotion: string): string => {
@@ -8,19 +16,11 @@ const getEmotionIconPath = (emotion: string): string => {
   return `${basePath}/mind/${emotion}.png`
 }
 
-// Mock 데이터: 이달의 감정 달력
-const mockCalendarEmotions: Record<number, string> = {
-  1: "기쁨", 2: "그저그럼", 3: "기쁨", 4: "그저그럼", 5: "기쁨", 6: "기쁨", 7: "신남",
-  8: "신남", 9: "슬픔", 10: "기쁨", 11: "분노", 12: "분노", 13: "분노", 14: "그저그럼",
-  15: "놀라움", 16: "신남", 17: "신남", 18: "설렘",
+// 티키타카 랭킹 타입
+interface TikitakaRanking {
+  name: string
+  count: number
 }
-
-// Mock 데이터: 이달의 티키타카 랭킹
-const mockRanking = [
-  { name: "춘식이", count: 8 },
-  { name: "무지", count: 5 },
-  { name: "Sarah", count: 3 },
-]
 
 // 프로필 색상 팔레트
 const profileColors = [
@@ -39,7 +39,11 @@ const getProfileColor = (name: string) => {
   return profileColors[Math.abs(hash) % profileColors.length]
 }
 
-export function HomeTab() {
+export function HomeTab({ userId }: HomeTabProps) {
+  const [calendarEmotions, setCalendarEmotions] = useState<Record<number, EmotionIcon>>({})
+  const [ranking, setRanking] = useState<TikitakaRanking[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
   // 현재 년월
   const now = new Date()
   const year = now.getFullYear()
@@ -48,6 +52,54 @@ export function HomeTab() {
   // 달력 데이터 생성
   const firstDay = new Date(year, month - 1, 1).getDay()
   const daysInMonth = new Date(year, month, 0).getDate()
+
+  // 리포트 데이터 로드
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true)
+      const reports = await fetchReports(userId)
+
+      // 이달의 감정 달력 데이터 추출
+      const emotions: Record<number, EmotionIcon> = {}
+      const tikitakaCount: Record<string, number> = {}
+
+      reports.forEach((report) => {
+        // content 구조 검증
+        if (!isValidReportContent(report.content)) return
+
+        const targetDate = report.content.report_meta.target_date
+        const reportDate = new Date(targetDate)
+
+        // 이번 달 리포트만 처리
+        if (reportDate.getFullYear() === year && reportDate.getMonth() + 1 === month) {
+          const day = reportDate.getDate()
+          const dominant = report.content.dashboard?.emotion_weather?.dominant
+          if (dominant) {
+            emotions[day] = dominant
+          }
+
+          // 티키타카 카운트
+          const partnerName = report.content.dashboard?.best_chemistry?.partner_name
+          if (partnerName) {
+            tikitakaCount[partnerName] = (tikitakaCount[partnerName] || 0) + 1
+          }
+        }
+      })
+
+      setCalendarEmotions(emotions)
+
+      // 랭킹 정렬
+      const sortedRanking = Object.entries(tikitakaCount)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5)
+      setRanking(sortedRanking)
+
+      setIsLoading(false)
+    }
+
+    loadData()
+  }, [userId, year, month])
 
   return (
     <div className="space-y-6">
@@ -76,7 +128,7 @@ export function HomeTab() {
           {/* 날짜들 */}
           {Array.from({ length: daysInMonth }).map((_, i) => {
             const day = i + 1
-            const emotion = mockCalendarEmotions[day]
+            const emotion = calendarEmotions[day]
             return (
               <div key={day} className="aspect-square flex items-center justify-center">
                 {emotion ? (
@@ -102,30 +154,36 @@ export function HomeTab() {
         </div>
 
         <div className="space-y-2">
-          {mockRanking.map((person, idx) => {
-            const colors = getProfileColor(person.name)
-            return (
-              <div
-                key={idx}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 ${colors.bg} rounded-full flex items-center justify-center`}>
-                    <span className={`text-sm font-medium ${colors.text}`}>
-                      {person.name.charAt(0)}
-                    </span>
+          {ranking.length === 0 ? (
+            <div className="p-4 bg-gray-50 rounded-xl text-center">
+              <p className="text-sm text-muted-foreground">아직 데이터가 없습니다</p>
+            </div>
+          ) : (
+            ranking.map((person, idx) => {
+              const colors = getProfileColor(person.name)
+              return (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 ${colors.bg} rounded-full flex items-center justify-center`}>
+                      <span className={`text-sm font-medium ${colors.text}`}>
+                        {person.name.charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{person.name}</p>
+                      <p className="text-xs text-muted-foreground">티키타카 {person.count}회</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-foreground">{person.name}</p>
-                    <p className="text-xs text-muted-foreground">티키타카 {person.count}회</p>
-                  </div>
+                  <button className="px-3 py-1.5 text-xs font-medium text-foreground border border-gray-300 rounded-full hover:bg-gray-100 transition-colors">
+                    선물하기
+                  </button>
                 </div>
-                <button className="px-3 py-1.5 text-xs font-medium text-foreground border border-gray-300 rounded-full hover:bg-gray-100 transition-colors">
-                  선물하기
-                </button>
-              </div>
-            )
-          })}
+              )
+            })
+          )}
         </div>
       </section>
 

@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Plus, X, LogOut, MessageCircle } from "lucide-react"
-import { supabase, clearUserSession } from "@/lib/supabase"
-import type { Chat } from "@/types/database"
+import { supabase, clearUserSession, fetchLatestReport, getTalkDiaryLastRead } from "@/lib/supabase"
+import type { Chat, Report } from "@/types/database"
 import { cn } from "@/lib/utils"
-import { mockReports } from "@/lib/mock-data"
 
 type TabType = "내 채팅" | "공개방"
 
@@ -44,6 +43,7 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
   }
   const [myChats, setMyChats] = useState<ChatWithDetails[]>([])
   const [publicChats, setPublicChats] = useState<ChatWithDetails[]>([])
+  const [latestReport, setLatestReport] = useState<Report | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [newChatName, setNewChatName] = useState("")
@@ -115,9 +115,15 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
       return b.lastMessageTime.localeCompare(a.lastMessageTime)
     })
 
-    // 톡다이어리를 최상단에 추가
-    const latestReport = mockReports[0]
-    const hasNewReport = mockReports.length > 0 // TODO: 실제로는 읽음 여부 체크
+    // 최신 리포트 조회
+    const report = await fetchLatestReport(userId)
+    setLatestReport(report)
+
+    // 읽지 않은 리포트 여부 확인
+    const lastRead = getTalkDiaryLastRead()
+    const hasNewReport = report
+      ? !lastRead || new Date(report.created_at) > new Date(lastRead)
+      : false
     const talkDiaryChat: ChatWithDetails = {
       id: TALK_DIARY_ID,
       name: "톡다이어리",
@@ -126,8 +132,8 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
       lastMessage: hasNewReport
         ? `${userName}님, 오늘의 톡다이어리가 도착했어요.`
         : "새 리포트를 기다려보세요",
-      lastMessageTime: latestReport?.created_at
-        ? formatTime(latestReport.created_at)
+      lastMessageTime: report?.created_at
+        ? formatTime(report.created_at)
         : undefined,
       unreadCount: 0,
       isMember: true,
@@ -188,7 +194,31 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
     loadData()
   }, [fetchMyChats, fetchPublicChats])
 
-  // 실시간 메시지 구독
+  // 톡다이어리 배지만 업데이트 (가벼운 업데이트)
+  const updateTalkDiaryBadge = useCallback(async () => {
+    const report = await fetchLatestReport(userId)
+    setLatestReport(report)
+
+    const lastRead = getTalkDiaryLastRead()
+    const hasNewReport = report
+      ? !lastRead || new Date(report.created_at) > new Date(lastRead)
+      : false
+
+    setMyChats(prev => prev.map(chat =>
+      chat.isTalkDiary
+        ? {
+            ...chat,
+            hasNewReport,
+            lastMessage: hasNewReport
+              ? `${userName}님, 오늘의 톡다이어리가 도착했어요.`
+              : "새 리포트를 기다려보세요",
+            lastMessageTime: report?.created_at ? formatTime(report.created_at) : undefined,
+          }
+        : chat
+    ))
+  }, [userId, userName])
+
+  // 실시간 메시지 및 리포트 구독
   useEffect(() => {
     const channel = supabase
       .channel('chat-list-updates')
@@ -206,12 +236,20 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
           fetchPublicChats()
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'reports', filter: `profile_id=eq.${userId}` },
+        () => {
+          // 새 리포트가 추가되면 톡다이어리 배지만 업데이트
+          updateTalkDiaryBadge()
+        }
+      )
       .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [fetchMyChats, fetchPublicChats])
+  }, [fetchMyChats, fetchPublicChats, updateTalkDiaryBadge, userId])
 
   // 채팅방 생성
   const handleCreateChat = async () => {

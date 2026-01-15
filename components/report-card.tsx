@@ -1,7 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import useEmblaCarousel from "embla-carousel-react"
-import { Download } from "lucide-react"
+import { Download, Loader2 } from "lucide-react"
 import type { DailyReportContent, EmotionIcon } from "@/types/database"
 
 // 감정 아이콘 이미지 경로 매핑 (7종류)
@@ -56,6 +57,7 @@ interface ReportCardProps {
 
 export function ReportCard({ content, reportDate, onChatClick, onViewAll }: ReportCardProps) {
   const { dailySummary, specialConversations, aiImageSummary } = content
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const [emblaRef] = useEmblaCarousel({
     align: "start",
@@ -66,10 +68,16 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
   const formattedDateTitle = `${date.getMonth() + 1}월 ${date.getDate()}일, 오늘의 톡다이어리가 도착했어요.`
 
   const handleDownloadImage = async () => {
-    if (!aiImageSummary.imageUrl) return
+    if (!aiImageSummary.imageUrl || isDownloading) return
+
+    setIsDownloading(true)
 
     try {
-      const response = await fetch(aiImageSummary.imageUrl)
+      // fetch로 이미지 다운로드 시도
+      const response = await fetch(aiImageSummary.imageUrl, { mode: 'cors' })
+
+      if (!response.ok) throw new Error('Fetch failed')
+
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -80,7 +88,11 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
     } catch (error) {
-      console.error('Image download failed:', error)
+      // CORS 에러 등 발생 시 새 탭에서 열기
+      console.error('Direct download failed, opening in new tab:', error)
+      window.open(aiImageSummary.imageUrl, '_blank')
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -214,9 +226,20 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                 <div className="p-3 space-y-2">
                   <button
                     onClick={handleDownloadImage}
-                    className="w-full py-3 bg-kakao-yellow rounded-xl text-sm font-medium text-foreground hover:bg-kakao-yellow/80 transition-colors"
+                    disabled={isDownloading}
+                    className="w-full py-3 bg-kakao-yellow rounded-xl text-sm font-medium text-foreground hover:bg-kakao-yellow/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    이미지 다운로드
+                    {isDownloading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        다운로드 중...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        이미지 다운로드
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={onViewAll}

@@ -8,7 +8,7 @@ import { TalkDiaryPage } from "@/components/talk-diary-page"
 import { TalkDiaryNotification } from "@/components/talk-diary-notification"
 import { ArchivePage } from "@/components/archive-page"
 import { BottomNav, BottomTabType } from "@/components/bottom-nav"
-import { getUserId, getUserName } from "@/lib/supabase"
+import { getUserId, getUserName, saveTalkDiaryLastRead, supabase } from "@/lib/supabase"
 import type { Chat } from "@/types/database"
 
 type View = "login" | "main" | "chat-room" | "talk-diary"
@@ -22,6 +22,7 @@ export default function Home() {
   const [userId, setUserId] = useState<string | null>(null)
   const [userName, setUserName] = useState<string | null>(null)
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
+  const [targetMessageId, setTargetMessageId] = useState<string | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)
   const [chatListKey, setChatListKey] = useState(0) // 채팅 목록 새로고침용
@@ -38,8 +39,6 @@ export default function Home() {
       setView("main")
       // 초기 히스토리 상태 설정
       window.history.replaceState({ view: "main" }, "")
-      // 임시: 새로고침 시 알림 표시
-      setShowNotification(true)
     }
 
     setIsLoading(false)
@@ -65,10 +64,13 @@ export default function Home() {
   // 채팅방 선택
   const handleSelectChat = (chat: Chat) => {
     if (chat.id === TALK_DIARY_ID) {
+      // 톡다이어리 진입 시 읽음 시간 저장
+      saveTalkDiaryLastRead(new Date().toISOString())
       setView("talk-diary")
       window.history.pushState({ view: "talk-diary" }, "")
     } else {
       setSelectedChat(chat)
+      setTargetMessageId(undefined) // 일반 선택 시 타겟 메시지 초기화
       setView("chat-room")
       window.history.pushState({ view: "chat-room", chatId: chat.id }, "")
     }
@@ -81,6 +83,9 @@ export default function Home() {
 
   // 톡다이어리 알림 클릭 시 톡다이어리 페이지로 이동
   const handleNotificationClick = () => {
+    // 톡다이어리 진입 시 읽음 시간 저장
+    saveTalkDiaryLastRead(new Date().toISOString())
+    setShowNotification(false)
     setView("talk-diary")
     window.history.pushState({ view: "talk-diary" }, "")
   }
@@ -100,11 +105,31 @@ export default function Home() {
     return () => window.removeEventListener("popstate", handlePopState)
   }, [view])
 
-  // TODO: Supabase Realtime 구독으로 새 리포트 감지 시 호출
-  // const triggerNotification = () => {
-  //   setShowNotification(true)
-  //   setChatListKey(prev => prev + 1)
-  // }
+  // Supabase Realtime 구독으로 새 리포트 감지
+  useEffect(() => {
+    if (!userId) return
+
+    const channel = supabase
+      .channel('new-report-notification')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reports',
+          filter: `profile_id=eq.${userId}`,
+        },
+        () => {
+          // 새 리포트 도착 시 알림만 표시 (채팅 목록은 자체적으로 업데이트)
+          setShowNotification(true)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [userId])
 
   // 초기 로딩
   if (isLoading) {
@@ -143,7 +168,7 @@ export default function Home() {
               onUnreadCountChange={setUnreadCount}
             />
           ) : (
-            <ArchivePage onLogout={handleLogout} />
+            <ArchivePage userId={userId} onLogout={handleLogout} />
           )}
           <BottomNav
             activeTab={bottomTab}
@@ -159,6 +184,7 @@ export default function Home() {
           userId={userId}
           userName={userName}
           onBack={handleBackToList}
+          targetMessageId={targetMessageId}
         />
       )}
 
@@ -166,8 +192,27 @@ export default function Home() {
         <TalkDiaryPage
           userId={userId}
           onBack={handleBackToList}
-          onNavigateToChat={(chatId, messageId) => {
-            // TODO: 해당 채팅방으로 이동
+          onNavigateToChat={async (chatId, messageId) => {
+            // 채팅방 정보 조회
+            const { data: chatData } = await supabase
+              .from('chats')
+              .select('*')
+              .eq('id', chatId)
+              .single()
+
+            if (chatData) {
+              setSelectedChat(chatData)
+              setTargetMessageId(messageId)
+              setView("chat-room")
+              window.history.pushState({ view: "chat-room", chatId, messageId }, "")
+            }
+          }}
+          onViewAll={() => {
+            // 톡다이어리 탭으로 이동 (history.back 대신 직접 상태 변경)
+            setSelectedChat(null)
+            setBottomTab("archive")
+            setView("main")
+            window.history.replaceState({ view: "main" }, "")
           }}
         />
       )}

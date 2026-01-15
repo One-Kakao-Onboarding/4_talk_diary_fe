@@ -12,10 +12,11 @@ import { ReportTab } from "./report-tab"
 type TabType = "home" | "calendar" | "ranking" | "report"
 
 interface TalkDiaryProps {
+  userId: string
   onLogout: () => void
 }
 
-export function TalkDiary({ onLogout }: TalkDiaryProps) {
+export function TalkDiary({ userId, onLogout }: TalkDiaryProps) {
   const [activeTab, setActiveTab] = useState<TabType>("home")
 
   const handleLogout = () => {
@@ -68,10 +69,10 @@ export function TalkDiary({ onLogout }: TalkDiaryProps) {
 
       {/* Content - 스크롤 영역 */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-4 pb-safe scrollbar-thin">
-        {activeTab === "home" && <HomeTab />}
-        {activeTab === "calendar" && <CalendarTab />}
-        {activeTab === "ranking" && <RankingTab />}
-        {activeTab === "report" && <ReportTab />}
+        {activeTab === "home" && <HomeTab userId={userId} />}
+        {activeTab === "calendar" && <CalendarTab userId={userId} />}
+        {activeTab === "ranking" && <RankingTab userId={userId} />}
+        {activeTab === "report" && <ReportTab userId={userId} />}
       </div>
     </div>
   )

@@ -1,25 +1,44 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react"
 import { ReportCard } from "@/components/report-card"
-import { mockReports } from "@/lib/mock-data"
+import { fetchReports } from "@/lib/supabase"
+import { convertReportToLegacy, type DailyReport } from "@/types/database"
 
 interface TalkDiaryPageProps {
   userId: string
   onBack: () => void
   onNavigateToChat?: (chatId: string, messageId?: string) => void
+  onViewAll?: () => void
 }
 
-export function TalkDiaryPage({ userId, onBack, onNavigateToChat }: TalkDiaryPageProps) {
+export function TalkDiaryPage({ userId, onBack, onNavigateToChat, onViewAll }: TalkDiaryPageProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const [reports, setReports] = useState<DailyReport[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // 리포트 데이터 로드
+  useEffect(() => {
+    const loadReports = async () => {
+      setIsLoading(true)
+      const data = await fetchReports(userId)
+      // 새 구조를 레거시 구조로 변환 (null 제외)
+      const legacyReports = data
+        .map(convertReportToLegacy)
+        .filter((r): r is DailyReport => r !== null)
+      setReports(legacyReports)
+      setIsLoading(false)
+    }
+    loadReports()
+  }, [userId])
 
   // 입장 시 스크롤을 맨 아래로
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && !isLoading) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
-  }, [])
+  }, [isLoading])
 
   // 날짜 포맷팅
   const formatDatePill = (dateString: string) => {
@@ -48,13 +67,17 @@ export function TalkDiaryPage({ userId, onBack, onNavigateToChat }: TalkDiaryPag
 
       {/* Reports */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 pt-4 pb-safe scrollbar-thin">
-        {mockReports.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-foreground/50">리포트를 불러오는 중...</p>
+          </div>
+        ) : reports.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-foreground/50">아직 리포트가 없습니다</p>
           </div>
         ) : (
-          [...mockReports].sort((a, b) =>
-            new Date(a.report_date).getTime() - new Date(b.report_date).getTime()
+          [...reports].sort((a, b) =>
+            new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
           ).map((report) => (
             <div key={report.id} className="space-y-3 mb-4">
               {/* 날짜 pill */}
@@ -80,9 +103,7 @@ export function TalkDiaryPage({ userId, onBack, onNavigateToChat }: TalkDiaryPag
                     content={report.content}
                     reportDate={report.report_date}
                     onChatClick={(chatId, messageId) => onNavigateToChat?.(chatId, messageId)}
-                    onViewAll={() => {
-                      // TODO: Archive 페이지로 이동
-                    }}
+                    onViewAll={onViewAll}
                   />
                 </div>
               </div>
