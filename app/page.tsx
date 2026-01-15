@@ -172,7 +172,7 @@ export default function Home() {
           )}
           <BottomNav
             activeTab={bottomTab}
-            onTabChange={setBottomTab}
+            onTabChange={() => {}} // 네비게이션 바에서 탭 전환 비활성화
             unreadCount={unreadCount}
           />
         </>
