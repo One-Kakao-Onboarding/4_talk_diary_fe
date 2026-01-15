@@ -116,6 +116,23 @@
 
 - 톡다이어리 리포트 카드 (3장 가로 스와이프)
 
+**캐러셀 설정**
+
+```typescript
+useEmblaCarousel({
+  align: "center",        // 중앙 정렬 (이전/다음 카드 peek)
+  containScroll: "trimSnaps",  // 첫/마지막 카드는 가장자리 정렬
+  slidesToScroll: 1,
+})
+```
+
+**카드 레이아웃**
+
+- 카드 너비: 360px 고정
+- 카드 간격: 12px (gap-3)
+- 좌측 여백: 12px (프로필과 정렬)
+- 우측 스페이서: 24px (마지막 카드 여백)
+
 ---
 
 ## 백엔드 (Supabase)
@@ -226,12 +243,37 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx...
 
 ### 현재 구현 (프론트엔드)
 
-- 톡다이어리 전용 페이지 (`TalkDiaryPage`)
-- 리포트 카드 캐러셀 (`ReportCard` + Embla Carousel)
-- 알림 컴포넌트 (`TalkDiaryNotification`)
-- Mock 데이터 (`lib/mock-data.ts`)
+**톡다이어리 채팅방**
+- `TalkDiaryPage`: 리포트 목록 표시 (날짜순 정렬)
+- `ReportCard`: 3장 캐러셀 (Embla Carousel)
+- `TalkDiaryNotification`: 상단 푸시 알림 스타일
 
-### 예정 (백엔드 연동)
+**톡다이어리 전체보기**
+- `TalkDiary` (components/talk-diary/index.tsx): 홈/리포트 탭 컨테이너
+- `HomeTab`: 월별 캘린더, 랭킹, 키워드, AI 갤러리
+- `ReportTab`: 주별 캘린더, 날짜별 리포트 상세
 
-- Supabase Realtime으로 `daily_reports` 테이블 INSERT 감지
-- AI 서버에서 리포트 생성 후 Supabase에 저장
+**UI 스타일**
+- 카드 border-radius: 12px (rounded-xl)
+- 내부 박스/버튼 border-radius: 8px (rounded-lg)
+- 박스 그림자: `shadow-[0_0_12px_rgba(0,0,0,0.1)]`
+- 내부 박스 배경: `#FAFAFA`
+
+**애니메이션**
+- AI 갤러리: 3초 간격 자동 슬라이드, 1초 크로스페이드
+
+### 백엔드 연동 (완료)
+
+- Supabase Realtime으로 `reports` 테이블 INSERT 감지
+- 새 리포트 도착 시 알림 표시
+- `fetchReports()`: 사용자별 리포트 조회
+
+### 리포트 생성 흐름
+
+```
+AI 서버 (자동 생성) → Supabase DB 저장 → Realtime 이벤트 → 클라이언트 알림/표시
+```
+
+- 클라이언트는 AI 서버를 직접 호출하지 않음
+- 서버에서 리포트 생성 후 DB에 저장하면 Realtime으로 감지
+- 클라이언트는 DB에서 리포트를 조회하여 UI 구성
