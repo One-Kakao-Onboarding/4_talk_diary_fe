@@ -256,7 +256,7 @@ export function ReportTab({ userId, onNavigateToChat }: ReportTabProps) {
             </p>
 
             {/* 오늘의 키워드 */}
-            <div className="flex items-center justify-between p-3 rounded-xl mb-2" style={{ backgroundColor: '#FAFAFA' }}>
+            <div className="flex items-center justify-between p-3 rounded-lg mb-2" style={{ backgroundColor: '#FAFAFA' }}>
               <span className="text-sm font-medium text-foreground">오늘의 키워드</span>
               <div className="flex gap-1.5 flex-wrap justify-end">
                 {selectedReport.content.dailySummary.keywords.map((keyword, idx) => {
@@ -274,7 +274,7 @@ export function ReportTab({ userId, onNavigateToChat }: ReportTabProps) {
             </div>
 
             {/* 오늘의 감정 날씨 */}
-            <div className="flex items-center justify-between p-3 rounded-xl mb-2" style={{ backgroundColor: '#FAFAFA' }}>
+            <div className="flex items-center justify-between p-3 rounded-lg mb-2" style={{ backgroundColor: '#FAFAFA' }}>
               <span className="text-sm font-medium text-foreground">오늘의 감정 날씨</span>
               <div className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-100 rounded-full">
                 <img
@@ -289,7 +289,7 @@ export function ReportTab({ userId, onNavigateToChat }: ReportTabProps) {
             </div>
 
             {/* 최고의 티키타카 */}
-            <div className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: '#FAFAFA' }}>
+            <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: '#FAFAFA' }}>
               <span className="text-sm font-medium text-foreground">최고의 티키타카</span>
               {(() => {
                 const name = selectedReport.content.dailySummary.bestTikitaka.name
@@ -322,7 +322,7 @@ export function ReportTab({ userId, onNavigateToChat }: ReportTabProps) {
                     <button
                       key={idx}
                       onClick={() => onNavigateToChat?.(conversation.chatId, conversation.messageId)}
-                      className="w-full text-left p-4 rounded-xl transition-colors"
+                      className="w-full text-left p-4 rounded-lg transition-colors"
                       style={{ backgroundColor: '#FAFAFA' }}
                     >
                       {/* 키워드 태그 + 제목 */}
@@ -357,7 +357,7 @@ export function ReportTab({ userId, onNavigateToChat }: ReportTabProps) {
               <hr className="border-t border-gray-200 -mx-4" />
               <section>
                 <h3 className="font-semibold text-foreground mb-3">AI 갤러리</h3>
-                <div className="rounded-3xl overflow-hidden">
+                <div className="rounded-xl overflow-hidden">
                   <img
                     src={selectedReport.content.aiImageSummary.imageUrl}
                     alt="AI 생성 이미지"

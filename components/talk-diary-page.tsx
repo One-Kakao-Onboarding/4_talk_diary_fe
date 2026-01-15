@@ -66,7 +66,7 @@ export function TalkDiaryPage({ userId, onBack, onNavigateToChat, onViewAll }: T
       </header>
 
       {/* Reports */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 pt-4 pb-safe scrollbar-thin">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pt-4 pb-safe scrollbar-thin">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-foreground/50">리포트를 불러오는 중...</p>
@@ -90,15 +90,18 @@ export function TalkDiaryPage({ userId, onBack, onNavigateToChat, onViewAll }: T
               </div>
 
               {/* 리포트 */}
-              <div className="flex items-start">
-                {/* 톡다이어리 아바타 */}
-                <img
-                  src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/dairy_profile.png`}
-                  alt="톡다이어리"
-                  className="w-10 h-10 rounded-2xl shrink-0 mr-2 object-cover"
-                />
-                <div className="flex flex-col items-start flex-1 min-w-0">
-                  <span className="text-sm text-foreground/70 font-medium mb-1">톡다이어리</span>
+              <div className="space-y-2">
+                {/* 프로필 행 */}
+                <div className="flex items-center gap-2 px-3">
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/dairy_profile.png`}
+                    alt="톡다이어리"
+                    className="w-10 h-10 rounded-2xl shrink-0 object-cover"
+                  />
+                  <span className="text-sm text-foreground/70 font-medium">톡다이어리</span>
+                </div>
+                {/* 카드 행 */}
+                <div>
                   <ReportCard
                     content={report.content}
                     reportDate={report.report_date}

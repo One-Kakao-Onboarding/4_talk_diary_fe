@@ -239,7 +239,7 @@ export function HomeTab({ userId }: HomeTabProps) {
   return (
     <div className="space-y-6">
       {/* 감정 달력 */}
-      <section className="bg-white rounded-3xl p-5 shadow-[0_0_12px_rgba(0,0,0,0.1)]">
+      <section className="bg-white rounded-xl p-5 shadow-[0_0_12px_rgba(0,0,0,0.1)]">
         {/* 헤더: 년월 + 네비게이션 */}
         <div className="flex items-center justify-between mb-4">
           <button
@@ -343,7 +343,7 @@ export function HomeTab({ userId }: HomeTabProps) {
               return (
                 <div
                   key={idx}
-                  className="flex items-center justify-between p-3 rounded-2xl"
+                  className="flex items-center justify-between p-3 rounded-lg"
                   style={{ backgroundColor: '#F5F5F5' }}
                 >
                   <div className="flex items-center gap-2">
@@ -376,7 +376,7 @@ export function HomeTab({ userId }: HomeTabProps) {
       </section>
 
       {/* 키워드 컬렉션 */}
-      <section className="bg-white rounded-3xl p-5 shadow-[0_0_12px_rgba(0,0,0,0.1)]">
+      <section className="bg-white rounded-xl p-5 shadow-[0_0_12px_rgba(0,0,0,0.1)]">
         <h2 className="font-semibold text-foreground mb-4">키워드 컬렉션</h2>
 
         {viewMonthKeywords.length === 0 ? (
@@ -411,10 +411,10 @@ export function HomeTab({ userId }: HomeTabProps) {
           <img
             src={randomImage}
             alt="AI 생성 이미지"
-            className="w-full rounded-3xl object-cover"
+            className="w-full rounded-xl object-cover"
           />
         ) : (
-          <div className="w-full h-48 rounded-3xl bg-gray-100 flex items-center justify-center">
+          <div className="w-full h-48 rounded-xl bg-gray-100 flex items-center justify-center">
             <p className="text-sm text-muted-foreground">아직 이미지가 없습니다</p>
           </div>
         )}

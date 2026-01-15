@@ -60,8 +60,9 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
   const [isDownloading, setIsDownloading] = useState(false)
 
   const [emblaRef] = useEmblaCarousel({
-    align: "start",
-    containScroll: false,
+    align: "center",
+    containScroll: "trimSnaps",
+    slidesToScroll: 1,
   })
 
   const date = new Date(reportDate)
@@ -98,12 +99,12 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
 
   return (
     <div className="w-full">
-      {/* 캐러셀 - 다음 카드가 살짝 보임 */}
+      {/* 캐러셀 - 좌우 카드가 살짝 보임 */}
       <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex gap-2 items-start">
+        <div className="flex items-start gap-3 px-3">
           {/* 1. 데일리 요약 카드 */}
-          <div className="flex-[0_0_85%] min-w-0">
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="w-[360px] flex-shrink-0">
+            <div className="bg-white rounded-xl p-4 shadow-sm">
               {/* 타이틀 */}
               <h3 className="font-bold text-base text-foreground mb-2">{formattedDateTitle}</h3>
 
@@ -115,7 +116,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
               {/* 박스로 묶인 섹션들 */}
               <div className="space-y-2">
                 {/* 오늘의 키워드 */}
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-semibold text-foreground">오늘의 키워드</span>
                   <div className="flex gap-1.5">
                     {dailySummary.keywords.map((keyword, idx) => {
@@ -133,7 +134,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                 </div>
 
                 {/* 오늘의 감정 날씨 */}
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-semibold text-foreground">오늘의 감정 날씨</span>
                   <div className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-100 rounded-full">
                     <img
@@ -148,7 +149,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                 </div>
 
                 {/* 최고의 티키타카 */}
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-semibold text-foreground">최고의 티키타카</span>
                   {(() => {
                     const colors = getKeywordColor(dailySummary.bestTikitaka.name || "")
@@ -169,8 +170,8 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
           </div>
 
           {/* 2. 오늘의 특별한 대화 카드 */}
-          <div className="flex-[0_0_85%] min-w-0">
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
+          <div className="w-[360px] flex-shrink-0">
+            <div className="bg-white rounded-xl p-4 shadow-sm">
               <h4 className="font-bold text-base text-foreground mb-3">
                 오늘의 특별한 대화를 확인해보세요.
               </h4>
@@ -183,7 +184,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                     <button
                       key={idx}
                       onClick={() => onChatClick?.(conversation.chatId, conversation.messageId)}
-                      className="w-full text-left p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                      className="w-full text-left p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
                       {/* 키워드 태그 + 제목 */}
                       <div className="flex items-center gap-2 mb-1">
@@ -211,8 +212,8 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
 
           {/* 3. AI 이미지 요약 카드 */}
           {aiImageSummary.imageUrl && (
-            <div className="flex-[0_0_85%] min-w-0">
-              <div className="bg-white rounded-2xl overflow-hidden shadow-sm">
+            <div className="w-[360px] flex-shrink-0">
+              <div className="bg-white rounded-xl overflow-hidden shadow-sm">
                 {/* AI 이미지 */}
                 <div className="relative aspect-square bg-gray-100">
                   <img
@@ -227,7 +228,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                   <button
                     onClick={handleDownloadImage}
                     disabled={isDownloading}
-                    className="w-full py-3 bg-kakao-yellow rounded-xl text-sm font-medium text-foreground hover:bg-kakao-yellow/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-kakao-yellow rounded-lg text-sm font-medium text-foreground hover:bg-kakao-yellow/80 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {isDownloading ? (
                       <>
@@ -243,7 +244,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
                   </button>
                   <button
                     onClick={onViewAll}
-                    className="w-full py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-foreground hover:bg-gray-50 transition-colors"
+                    className="w-full py-3 bg-white border border-gray-200 rounded-lg text-sm font-medium text-foreground hover:bg-gray-50 transition-colors"
                   >
                     톡다이어리 전체보기
                   </button>
