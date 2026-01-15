@@ -101,7 +101,7 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
     <div className="w-full">
       {/* 캐러셀 - 좌우 카드가 살짝 보임 */}
       <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex items-start gap-3 px-3">
+        <div className="flex items-start gap-3 pl-3">
           {/* 1. 데일리 요약 카드 */}
           <div className="w-[360px] flex-shrink-0">
             <div className="bg-white rounded-xl p-4 shadow-sm">
@@ -252,6 +252,8 @@ export function ReportCard({ content, reportDate, onChatClick, onViewAll }: Repo
               </div>
             </div>
           )}
+          {/* 오른쪽 여백용 스페이서 */}
+          <div className="w-6 flex-shrink-0" />
         </div>
       </div>
     </div>
