@@ -5,8 +5,12 @@ const isProd = process.env.NODE_ENV === "production";
 const nextConfig: NextConfig = {
   output: "export",
   basePath: isProd ? "/4_talk_diary_fe" : "",
+  assetPrefix: isProd ? "/4_talk_diary_fe" : "",
   images: {
     unoptimized: true,
+  },
+  env: {
+    NEXT_PUBLIC_BASE_PATH: isProd ? "/4_talk_diary_fe" : "",
   },
 };
 

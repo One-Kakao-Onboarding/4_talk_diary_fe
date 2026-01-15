@@ -70,7 +70,7 @@ export function TalkDiaryPage({ userId, onBack, onNavigateToChat }: TalkDiaryPag
               <div className="flex items-start">
                 {/* 톡다이어리 아바타 */}
                 <img
-                  src="/dairy_profile.png"
+                  src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/dairy_profile.png`}
                   alt="톡다이어리"
                   className="w-10 h-10 rounded-2xl shrink-0 mr-2 object-cover"
                 />

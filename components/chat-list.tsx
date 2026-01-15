@@ -379,7 +379,7 @@ export function ChatList({ userId, userName, onSelectChat, onLogout, onUnreadCou
                 {/* Avatar */}
                 {chat.isTalkDiary ? (
                   <img
-                    src="/dairy_profile.png"
+                    src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/dairy_profile.png`}
                     alt="톡다이어리"
                     className="w-14 h-14 rounded-3xl shrink-0 object-cover"
                   />

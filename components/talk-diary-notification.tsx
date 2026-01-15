@@ -58,7 +58,7 @@ export function TalkDiaryNotification({
       >
         {/* 프로필 이미지 */}
         <img
-          src="/dairy_profile.png"
+          src={`${process.env.NEXT_PUBLIC_BASE_PATH || ""}/dairy_profile.png`}
           alt="톡다이어리"
           className="w-10 h-10 rounded-xl shrink-0 object-cover"
         />
