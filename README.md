@@ -63,6 +63,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 AI 서버 (자동 생성) → Supabase DB 저장 → Realtime 이벤트 → 클라이언트 알림/표시
 ```
 
+**AI 서버 레포지토리**: [4_talk_diary_be](https://github.com/One-Kakao-Onboarding/4_talk_diary_be)
+
 ## Documentation
 
 상세 문서는 [docs/](./docs/README.md) 참고
