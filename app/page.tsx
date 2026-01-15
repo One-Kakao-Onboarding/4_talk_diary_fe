@@ -159,22 +159,27 @@ export default function Home() {
       {view === "main" && userId && userName && (
         <>
           {bottomTab === "chat" ? (
-            <ChatList
-              key={chatListKey}
-              userId={userId}
-              userName={userName}
-              onSelectChat={handleSelectChat}
-              onLogout={handleLogout}
-              onUnreadCountChange={setUnreadCount}
-            />
+            <>
+              <ChatList
+                key={chatListKey}
+                userId={userId}
+                userName={userName}
+                onSelectChat={handleSelectChat}
+                onLogout={handleLogout}
+                onUnreadCountChange={setUnreadCount}
+              />
+              <BottomNav
+                activeTab={bottomTab}
+                onTabChange={() => {}}
+                unreadCount={unreadCount}
+              />
+            </>
           ) : (
-            <ArchivePage userId={userId} onLogout={handleLogout} />
+            <ArchivePage
+              userId={userId}
+              onClose={() => setBottomTab("chat")}
+            />
           )}
-          <BottomNav
-            activeTab={bottomTab}
-            onTabChange={() => {}} // 네비게이션 바에서 탭 전환 비활성화
-            unreadCount={unreadCount}
-          />
         </>
       )}
 
